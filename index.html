@@ -24,7 +24,7 @@
       position: absolute;
       width: 25%;
       top: 20px;
-      left: 20px; /* Move it to the top-right corner */
+      right: 20px; /* Move it to the top-right corner */
       padding: 10px;
       z-index: 1000; /* Make sure it appears above the map */
     }
@@ -34,7 +34,7 @@
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
       border-radius: 3px;
       padding: 10px;
-      margin-bottom: 10px;
+      margin-bottom: 20px;
     }
 
     #slider {
@@ -50,6 +50,43 @@
       margin: 0;
       cursor: ew-resize;
     }
+        /* Custom Switcher Styles */
+        .basemap-switcher {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+            display: flex;
+            gap: 10px;
+            z-index: 1000
+        }
+
+        .basemap-switcher button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .basemap-switcher button:hover {
+            background-color: #0056b3;
+        }
+
+        .basemap-switcher button.active {
+            background-color: #28a745;
+        }
+
+        /* Adjust the position of the control container */
+        .leaflet-control-layers {
+            display: none;
+        }
+
   </style>
 </head>
 <body>
@@ -62,112 +99,8 @@
         <input id="slider" type="range" min="0" max="11" step="1" value="0">
     </div>
   </div>
-  <!-- Slider Control Container -->
-  <div id="slider-container">
-    <div id="leaflet-slider" style="width: 200px;"></div>
-    <div id="slider-timestamp" class="time-display">Timestamp: </div>
-    <!-- Display Min/Max Time Below the Slider -->
-    <div class="slider-time-range">
-        <span id="min-time">5AM </span>
-        <span id="max-time">9PM </span>
-    </div>
-</div>
-
   <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
   <script>
-    mapboxgl.accessToken = 'YOUR_MAPBOX_ACCESS_TOKEN';
-    const map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/mapbox/light-v11',
-        projection: 'winkelTripel',
-        center: [-45, 0],
-        zoom: 0.25
-    });
-
-    const months = [
-        'January',
-        'February',
-        'March',
-        'April',
-        'May',
-        'June',
-        'July',
-        'August',
-        'September',
-        'October',
-        'November'
-    ];
-
-    function filterBy(month) {
-        const filters = ['==', 'month', month];
-        map.setFilter('earthquake-circles', filters);
-        map.setFilter('earthquake-labels', filters);
-        document.getElementById('month').textContent = months[month];
-    }
-
-    map.on('load', () => {
-        d3.json(
-            'https://docs.mapbox.com/mapbox-gl-js/assets/significant-earthquakes-2015.geojson',
-            jsonCallback
-        );
-    });
-
-    function jsonCallback(err, data) {
-        if (err) {
-            throw err;
-        }
-
-        data.features = data.features.map((d) => {
-            d.properties.month = new Date(d.properties.time).getMonth();
-            return d;
-        });
-
-        map.addSource('earthquakes', {
-            'type': 'geojson',
-            data: data
-        });
-
-        map.addLayer({
-            'id': 'earthquake-circles',
-            'type': 'circle',
-            'source': 'earthquakes',
-            'paint': {
-                'circle-color': [
-                    'interpolate',
-                    ['linear'],
-                    ['get', 'mag'],
-                    6,
-                    '#FCA107',
-                    8,
-                    '#7F3121'
-                ],
-                'circle-opacity': 0.75,
-                'circle-radius': [
-                    'interpolate',
-                    ['linear'],
-                    ['get', 'mag'],
-                    6,
-                    20,
-                    8,
-                    40
-                ]
-            }
-        });
-
-        map.addLayer({
-            'id': 'earthquake-labels',
-            'type': 'symbol',
-            'source': 'earthquakes',
-            'layout': {
-                'text-field': ['concat', ['to-string', ['get', 'mag']], 'm'],
-                'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
-                'text-size': 12
-            },
-            'paint': {
-                'text-color': 'rgba(0,0,0,0.5)'
-            }
-        });
-
         filterBy(0);
 
         document.getElementById('slider').addEventListener('input', (e) => {
@@ -176,7 +109,87 @@
         });
 
         //test
-    }
+  </script>
+  <!-- Custom Basemap Switcher -->
+<div class="basemap-switcher">
+  <button id="streetMapBtn" class="active">Street Map</button>
+  <button id="satelliteMapBtn">Satellite Map</button>
+  <button id="grayscaleMapBtn">Grayscale Map</button>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+  // Initialize the map
+  var map = L.map('map').setView([10.8231, 106.6297], 13);
+
+  // Define the base layers (tiles)
+  var streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  });
+
+  var satelliteMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: '&copy; <a href="https://www.esri.com/en-us/arcgis/products/arcgis-online/overview">Esri</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+});
+
+  var grayscaleMap = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://carto.com/attributions">CartoDB</a> contributors'
+  });
+
+  // Add the default basemap to the map
+  streetMap.addTo(map);
+
+  // Custom switcher buttons
+  var streetMapBtn = document.getElementById('streetMapBtn');
+  var satelliteMapBtn = document.getElementById('satelliteMapBtn');
+  var grayscaleMapBtn = document.getElementById('grayscaleMapBtn');
+
+  streetMapBtn.addEventListener('click', function() {
+      map.removeLayer(satelliteMap);
+      map.removeLayer(grayscaleMap);
+      streetMap.addTo(map);
+
+      // Update button styles
+      setActiveButton(streetMapBtn);
+  });
+
+  satelliteMapBtn.addEventListener('click', function() {
+      map.removeLayer(streetMap);
+      map.removeLayer(grayscaleMap);
+      satelliteMap.addTo(map);
+
+      // Update button styles
+      setActiveButton(satelliteMapBtn);
+  });
+
+  grayscaleMapBtn.addEventListener('click', function() {
+      map.removeLayer(streetMap);
+      map.removeLayer(satelliteMap);
+      grayscaleMap.addTo(map);
+
+      // Update button styles
+      setActiveButton(grayscaleMapBtn);
+  });
+
+  function setActiveButton(activeButton) {
+      streetMapBtn.classList.remove('active');
+      satelliteMapBtn.classList.remove('active');
+      grayscaleMapBtn.classList.remove('active');
+      
+      activeButton.classList.add('active');
+  }
+</script>
+  <script src="https://unpkg.com/leaflet-slider/dist/leaflet-slider.min.js"></script>
+  <script>
+      var sliderControl = null;
+      var marker1 = L.marker([10.8500, 106.6310], {time: "2013-01-22 08:42:26+01"});
+      var marker2 = L.marker([10.8550, 106.6320], {time: "2013-01-22 10:00:26+01"});
+      var marker3 = L.marker([10.8600, 106.6300], {time: "2013-01-22 10:03:29+01"});
+
+      layerGroup = L.layerGroup([marker1, marker2, marker3]).addTo(map);
+      var sliderControl = L.control.sliderControl({layer:layerGroup});
+      map.addControl(sliderControl);
+      sliderControl.startSlider();
+
   </script>
 </body>
 </html>

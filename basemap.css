@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        /* Make the map fill the whole screen */
+        #map {
+            height: 100vh;
+        }
+
+        /* Custom Switcher Styles */
+        .basemap-switcher {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+            display: flex;
+            gap: 10px;
+        }
+
+        .basemap-switcher button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .basemap-switcher button:hover {
+            background-color: #0056b3;
+        }
+
+        .basemap-switcher button.active {
+            background-color: #28a745;
+        }
+
+        /* Adjust the position of the control container */
+        .leaflet-control-layers {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<!-- Custom Basemap Switcher -->
+<div class="basemap-switcher">
+    <button id="streetMapBtn" class="active">Street Map</button>
+    <button id="satelliteMapBtn">Satellite Map</button>
+    <button id="grayscaleMapBtn">Grayscale Map</button>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+    // Initialize the map
+    var map = L.map('map').setView([51.505, -0.09], 13);
+
+    // Define the base layers (tiles)
+    var streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
+
+    var satelliteMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://opentopomap.org/copyright">OpenTopoMap</a> contributors'
+    });
+
+    var grayscaleMap = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://carto.com/attributions">CartoDB</a> contributors'
+    });
+
+    // Add the default basemap to the map
+    streetMap.addTo(map);
+
+    // Custom switcher buttons
+    var streetMapBtn = document.getElementById('streetMapBtn');
+    var satelliteMapBtn = document.getElementById('satelliteMapBtn');
+    var grayscaleMapBtn = document.getElementById('grayscaleMapBtn');
+
+    streetMapBtn.addEventListener('click', function() {
+        map.removeLayer(satelliteMap);
+        map.removeLayer(grayscaleMap);
+        streetMap.addTo(map);
+
+        // Update button styles
+        setActiveButton(streetMapBtn);
+    });
+
+    satelliteMapBtn.addEventListener('click', function() {
+        map.removeLayer(streetMap);
+        map.removeLayer(grayscaleMap);
+        satelliteMap.addTo(map);
+
+        // Update button styles
+        setActiveButton(satelliteMapBtn);
+    });
+
+    grayscaleMapBtn.addEventListener('click', function() {
+        map.removeLayer(streetMap);
+        map.removeLayer(satelliteMap);
+        grayscaleMap.addTo(map);
+
+        // Update button styles
+        setActiveButton(grayscaleMapBtn);
+    });
+
+    // Function to change active button style
+    function setActiveButton(activeButton) {
+        // Reset all buttons
+        streetMapBtn.classList.remove('active');
+        satelliteMapBtn.classList.remove('active');
+        grayscaleMapBtn.classList.remove('active');
+        
+        // Add active class to the clicked button
+        activeButton.classList.add('active');
+    }
+</script>
+
+</body>
+</html>
