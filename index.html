@@ -1,19 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HCMC Block</title>
+  <!-- for basemap -->
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-  <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" type="text/css">
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.9.3/mapbox-gl.js"></script>
+  <!-- for slider -->
+  <script src="https://unpkg.com/leaflet-slider/dist/leaflet-slider.min.js"></script>
   <script src="app.js"></script>
   <style>
-    html, body {
+    /*fitting the map screen to the desktop*/
+    html,
+    body {
       height: 100%;
       margin: 0;
       padding: 0;
     }
+
     #map {
       height: 100%;
       width: 100%;
@@ -22,174 +29,166 @@
     .map-overlay {
       font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
       position: absolute;
-      width: 25%;
       top: 20px;
-      right: 20px; /* Move it to the top-right corner */
+      right: 20px;
       padding: 10px;
-      z-index: 1000; /* Make sure it appears above the map */
-    }
-
-    .map-overlay .map-overlay-inner {
+      z-index: 1000;
       background-color: #fff;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
       border-radius: 3px;
-      padding: 10px;
+      width: 25%;
+    }
+
+    .map-overlay-inner {
       margin-bottom: 20px;
     }
 
+    .map-overlay input {
+      width: 100%;
+      cursor: pointer;
+    }
+
+    /* fix for the slider buttons' width and make them fit  */
+    .basemap-switcher {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background-color: rgb(255, 255, 255);
+      border-radius: 5px;
+      padding: 10px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+      display: flex;
+      gap: 10px;
+      z-index: 1000;
+    }
+
+    .basemap-switcher button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .basemap-switcher button:hover {
+      background-color: #0056b3;
+    }
+
+    .basemap-switcher button.active {
+      background-color: #28a745;
+    }
+
+    /* slider control size and at the top of the screen */
     #slider {
       position: relative;
-      z-index: 1000; /* Ensure the slider is above the basemap */
-    }
-
-    .map-overlay input {
-      background-color: transparent;
-      display: inline-block;
+      z-index: 1000;
       width: 100%;
-      position: relative;
-      margin: 0;
-      cursor: ew-resize;
     }
-        /* Custom Switcher Styles */
-        .basemap-switcher {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            background-color: rgba(255, 255, 255, 0.7);
-            border-radius: 5px;
-            padding: 10px;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-            display: flex;
-            gap: 10px;
-            z-index: 1000
-        }
 
-        .basemap-switcher button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .basemap-switcher button:hover {
-            background-color: #0056b3;
-        }
-
-        .basemap-switcher button.active {
-            background-color: #28a745;
-        }
-
-        /* Adjust the position of the control container */
-        .leaflet-control-layers {
-            display: none;
-        }
-
+    .leaflet-control-layers {
+      display: none;
+    }
   </style>
 </head>
+
 <body>
   <div id="map"></div>
-  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-  <div class="map-overlay top">
+  <div class="map-overlay">
     <div class="map-overlay-inner">
-        <h2>Time slider (5AM-9PM)</h2>
-        <label id="month"></label>
-        <input id="slider" type="range" min="0" max="11" step="1" value="0">
+      <h2>Time slider (5AM-9PM)</h2>
+      <input id="slider" type="range" min="0" max="11" step="1" value="0">
     </div>
   </div>
   <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
   <script>
-        filterBy(0);
-
-        document.getElementById('slider').addEventListener('input', (e) => {
-            const month = parseInt(e.target.value, 10);
-            filterBy(month);
-        });
-
-        //test
+    filterBy(0);
+    document.getElementById('slider').addEventListener('input', (e) => {
+      const month = parseInt(e.target.value, 10);
+      filterBy(month);
+    });
   </script>
-  <!-- Custom Basemap Switcher -->
-<div class="basemap-switcher">
-  <button id="streetMapBtn" class="active">Street Map</button>
-  <button id="satelliteMapBtn">Satellite Map</button>
-  <button id="grayscaleMapBtn">Grayscale Map</button>
-</div>
 
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script>
-  // Initialize the map
-  var map = L.map('map').setView([10.8231, 106.6297], 13);
+  <div class="basemap-switcher">
+    <button id="streetMapBtn" class="active">Street Map</button>
+    <button id="satelliteMapBtn">Satellite Map</button>
+    <button id="grayscaleMapBtn">Grayscale Map</button>
+  </div>
 
-  // Define the base layers (tiles)
-  var streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  <script>
+    // Initialize the map
+    var map = L.map('map').setView([10.8231, 106.6297], 13);
+
+    // Define the base layers (tiles)
+    var streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  });
+    });
 
-  var satelliteMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    attribution: '&copy; <a href="https://www.esri.com/en-us/arcgis/products/arcgis-online/overview">Esri</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-});
+    var satelliteMap = L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: '&copy; <a href="https://www.esri.com/en-us/arcgis/products/arcgis-online/overview">Esri</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      });
 
-  var grayscaleMap = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+    var grayscaleMap = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://carto.com/attributions">CartoDB</a> contributors'
-  });
+    });
 
-  // Add the default basemap to the map
-  streetMap.addTo(map);
+    // Add the default basemap to the map
+    streetMap.addTo(map);
 
-  // Custom switcher buttons
-  var streetMapBtn = document.getElementById('streetMapBtn');
-  var satelliteMapBtn = document.getElementById('satelliteMapBtn');
-  var grayscaleMapBtn = document.getElementById('grayscaleMapBtn');
+    // Custom switcher buttons
+    var streetMapBtn = document.getElementById('streetMapBtn');
+    var satelliteMapBtn = document.getElementById('satelliteMapBtn');
+    var grayscaleMapBtn = document.getElementById('grayscaleMapBtn');
 
-  streetMapBtn.addEventListener('click', function() {
+    streetMapBtn.addEventListener('click', function () {
       map.removeLayer(satelliteMap);
       map.removeLayer(grayscaleMap);
       streetMap.addTo(map);
-
-      // Update button styles
       setActiveButton(streetMapBtn);
-  });
+    });
 
-  satelliteMapBtn.addEventListener('click', function() {
+    satelliteMapBtn.addEventListener('click', function () {
       map.removeLayer(streetMap);
       map.removeLayer(grayscaleMap);
       satelliteMap.addTo(map);
-
-      // Update button styles
       setActiveButton(satelliteMapBtn);
-  });
+    });
 
-  grayscaleMapBtn.addEventListener('click', function() {
+    grayscaleMapBtn.addEventListener('click', function () {
       map.removeLayer(streetMap);
       map.removeLayer(satelliteMap);
       grayscaleMap.addTo(map);
-
-      // Update button styles
       setActiveButton(grayscaleMapBtn);
-  });
+    });
 
-  function setActiveButton(activeButton) {
+    function setActiveButton(activeButton) {
       streetMapBtn.classList.remove('active');
       satelliteMapBtn.classList.remove('active');
       grayscaleMapBtn.classList.remove('active');
-      
       activeButton.classList.add('active');
-  }
-</script>
-  <script src="https://unpkg.com/leaflet-slider/dist/leaflet-slider.min.js"></script>
+    }
+  </script>
   <script>
-      var sliderControl = null;
-      var marker1 = L.marker([10.8500, 106.6310], {time: "2013-01-22 08:42:26+01"});
-      var marker2 = L.marker([10.8550, 106.6320], {time: "2013-01-22 10:00:26+01"});
-      var marker3 = L.marker([10.8600, 106.6300], {time: "2013-01-22 10:03:29+01"});
+    var sliderControl = null;
+    var marker1 = L.marker([10.8500, 106.6310], {
+      time: "2013-01-22 08:42:26+01"
+    });
+    var marker2 = L.marker([10.8550, 106.6320], {
+      time: "2013-01-22 10:00:26+01"
+    });
+    var marker3 = L.marker([10.8600, 106.6300], {
+      time: "2013-01-22 10:03:29+01"
+    });
 
-      layerGroup = L.layerGroup([marker1, marker2, marker3]).addTo(map);
-      var sliderControl = L.control.sliderControl({layer:layerGroup});
-      map.addControl(sliderControl);
-      sliderControl.startSlider();
-
+    layerGroup = L.layerGroup([marker1, marker2, marker3]).addTo(map);
+    var sliderControl = L.control.sliderControl({
+      layer: layerGroup
+    });
+    map.addControl(sliderControl);
+    sliderControl.startSlider();
   </script>
 </body>
+
 </html>
